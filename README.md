@@ -1,2 +1,2 @@
 # CubeSat
-Various modelling scripts for a 3U CubeSat design
+Modelling scripts for a 3U CubeSat design
