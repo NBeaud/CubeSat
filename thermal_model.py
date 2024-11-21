@@ -1,25 +1,25 @@
 #---------------------
 # CubeSat thermal model
 #
-#Author: Nicolas Beaudoin
-#Course: MCG43221
+# Author: Nicolas Beaudoin
+# Course: MCG43221
 #
-#Reference: https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/Preliminary_Thermal_Analysis_of_Small_Satellites.pdf
+# Reference: https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/Preliminary_Thermal_Analysis_of_Small_Satellites.pdf
 #---------------------
 
-
+from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Variables -------
-cp = 903            # sepcific heat of satellite body (aluminium) [J/(kg*K)]
+# Parameters -------
+cp = 903            # sepcific heat of satellite body (~aluminium) [J/(kg*K)]
 m = 4               # mass of satellite [kg]
-sigma = 5.67*10**(-8) # stephen-boltzman constant [W * m^-2 * K^-4]
+sigma = 5.67*10**-8 # stephen-boltzman constant [W * m^-2 * K^-4]
 T = 293.15          # (initial) temperature of satellite [K]
 r_earth = 6873000   # radius of the earth [m]
-h = 400000          # altitude of satellite [m]
-tau = 5300          # revolution period [s]
+h = 1200000         # altitude of satellite [m]
+tau = 6550          # revolution period [s]
 alpha = 0.96        # absorbtivity of the satellite
 eps = 0.90          # emissivity of satellite
 summer = True       # bool, choses which q_sun to use
@@ -78,41 +78,48 @@ def Q(beta, t, temp):
     return q_IR(beta)* A_sat() + (1+a(beta))*q_sun()*A_sat()*s(t, beta)*alpha + Qgen - A_sat()*sigma*temp**4
 
 
+
 # MAIN -----
 
-#chose beta (or to iterate, simply add loop)
-beta = 31
-
 #choose time step
-delt = 1    # [s]
+delt = 10    # [s]
 
 #choose numbger of orbit cycles
-n=10
+n=2
+
+# datapoints for plot
+betas = []
+ts = []
+Ts = []
 
 #step
-t = 0
-Tmax = T
-Tmin = T
-Ts = []
-while t < np.ceil(n*tau/delt):
-    T += Q(beta, t, T)*delt/(cp*m)
-    if T > Tmax:
-        Tmax = T
-    if T < Tmin:
-        Tmin = T
-    Ts.append(T)
-    t += delt
+for beta in range(0,90,5):
+    t = 0
+    while t < n*tau:
+        T += Q(beta, t, T)*delt/(cp*m)
+        Ts.append(T)
+        ts.append(t)
+        t += delt
+        betas.append(beta)
 
 #result
-print("Tmax: "+ str(Tmax))
-print("Tmin: " + str(Tmin))
+print("Tmax: "+ str(max(Ts)))
+print("Tmin: " + str(min(Ts)))
 print("final T: " + str(T))
 
-#plot
+# 2D plot
 plt.plot(Ts)
-plt.ylabel("T[k]")
+plt.ylabel("T [K]")
 plt.xlabel("t [s]")
 plt.show()
+
+# 3D plot
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.plot_trisurf(betas,ts,Ts, alpha = 0.1)
+ax.scatter(betas,ts,Ts, )
+plt.show()
+
 
 
 
