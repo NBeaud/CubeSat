@@ -102,7 +102,7 @@ for beta in range(0,90,5):
         t += delt
         betas.append(beta)
 
-#result
+#results
 print("Tmax: "+ str(max(Ts)))
 print("Tmin: " + str(min(Ts)))
 print("final T: " + str(T))
@@ -118,6 +118,9 @@ fig = plt.figure()
 ax = plt.axes(projection='3d')
 ax.plot_trisurf(betas,ts,Ts, alpha = 0.1)
 ax.scatter(betas,ts,Ts, )
+ax.set_ylabel("t [s]")
+ax.set_xlabel("$\\beta$ [degrees]")
+ax.set_zlabel("T [K]")
 plt.show()
 
 
