@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 # Parameters -------
 cp = 903            # sepcific heat of satellite body (~aluminium) [J/(kg*K)]
 m = 4               # mass of satellite [kg]
-sigma = 5.67*10**-8 # stephen-boltzman constant [W * m^-2 * K^-4]
-T = 293.15          # (initial) temperature of satellite [K]
+sigma = 5.67*10**-8 # stefan-boltzman constant [W * m^-2 * K^-4]
+T = 273.15          # (initial) temperature of satellite [K]
 r_earth = 6873000   # radius of the earth [m]
 h = 1200000         # altitude of satellite [m]
 tau = 6550          # revolution period [s]
@@ -50,7 +50,7 @@ def q_IR(beta):
 def frac_E(beta):       
     if abs(beta) < beta_crit:
         # brace yourself, this is a fun one
-        return 1/180 * np.rad2deg( np.acos(np.sqrt(h**2 + 2*r_earth*h)/((r_earth+h)*np.cos(np.deg2rad(beta)))) )
+        return 1/np.pi * np.acos(np.sqrt(h**2 + 2*r_earth*h)/((r_earth+h)*np.cos(np.deg2rad(beta))))
     else:
         return 0
 
@@ -58,9 +58,9 @@ def frac_E(beta):
 def s(t, beta):
 
     if ( tau/2 * (1-frac_E(beta)) < t%tau < tau/2 * (1+frac_E(beta)) ): 
-        return 1
-    else:
         return 0
+    else:
+        return 1
 
 # area of satellite facing sun (const for now) [m^2]
 def A_sat():        
@@ -75,7 +75,7 @@ def q_sun():
 
 # Q dot funtion []
 def Q(beta, t, temp):
-    return q_IR(beta)* A_sat() + (1+a(beta))*q_sun()*A_sat()*s(t, beta)*alpha + Qgen - A_sat()*sigma*temp**4
+    return q_IR(beta)* A_sat() + (1+a(beta))*q_sun()*A_sat()*s(t, beta)*alpha + s(t, beta)*Qgen - A_sat()*sigma*temp**4
 
 
 
@@ -116,10 +116,10 @@ plt.show()
 # 3D plot
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.plot_trisurf(betas,ts,Ts, alpha = 0.1)
-ax.scatter(betas,ts,Ts, )
-ax.set_ylabel("t [s]")
-ax.set_xlabel("$\\beta$ [degrees]")
+ax.plot_trisurf(ts,betas,Ts, alpha = 0.1)
+ax.scatter(ts,betas,Ts, )
+ax.set_xlabel("t [s]")
+ax.set_ylabel("$\\beta$ [degrees]")
 ax.set_zlabel("T [K]")
 plt.show()
 
