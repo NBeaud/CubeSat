@@ -13,14 +13,14 @@ import matplotlib.pyplot as plt
 
 
 # Environment Parameters -------
-sigma = 5.67*10**-8 # stefan-boltzman constant [W * m^-2 * K^-4]
-T = 293.15          # (initial) temperature of satellite [K]
-r_earth = 6873000   # radius of the earth [m]
-h = 1200000         # altitude of satellite [m]
-tau = 6550          # revolution period [s]
-summer = True       # bool, choses which q_sun to use
-q_sun_hot = 1414    # specific heat rate from sun, summer dist [W * m^2]
-q_sun_cold = 1322   # specific heat rate from sun, winter dist [W * m^2]
+sigma = 5.67*10**-8     # stefan-boltzman constant [W * m^-2 * K^-4]
+T = 293.15              # (initial) temperature of satellite [K]
+r_earth = 6873000       # radius of the earth [m]
+h = 1200000             # altitude of satellite [m]
+tau = 6550              # revolution period [s]
+summer = True           # bool, choses which q_sun to use
+q_sun_hot = 1414        # specific heat rate from sun, summer dist [W * m^2]
+q_sun_cold = 1322       # specific heat rate from sun, winter dist [W * m^2]
 
 beta_crit = np.rad2deg( np.asin(r_earth/(r_earth+h)) )      # critical angle for eclipse [degrees]
 
@@ -34,6 +34,7 @@ m = 4               # mass of satellite [kg]
 areas = [0.03, 0.01, 0.01, 0.03, 0.03, 0.03]            # area of faces [m^2]
 alphas = [0.96, 0.96, 0.96, 0.96, 0.96, 0.96]           # absorbtivity of faces 
 epss = [0.90, 0.90, 0.90, 0.90, 0.90, 0.90]             # emissivity of faces
+masses = [a*m/sum(areas) for a in areas]                # masses associated to each face                                              
 
 
 # Utility --------
@@ -111,7 +112,8 @@ def Qzen(Ts, t, beta):
          + k*areas[1]*(Ts[1]-Ts[0])
          + k*areas[2]*(Ts[2]-Ts[0])
          + k*areas[4]*(Ts[4]-Ts[0])
-         + k*areas[5]*(Ts[5]-Ts[0]) )
+         + k*areas[5]*(Ts[5]-Ts[0]) 
+         + Qgen*s(t,beta) )             # include qgen in senith face
     
 def Qvneg(Ts, t, beta):
     return ( Fvneg(t, beta)*areas[1]*q_sun()*alphas[1] 
@@ -130,7 +132,7 @@ def Qvpos(Ts, t, beta):
          + k*areas[5]*(Ts[5]-Ts[2]) )
 
 def Qnad(Ts, t, beta):
-    return ( (Fnad(t,beta) + a(beta))*areas[3]*q_sun()*alphas[3]    #which alpha? is Azen a typo? probably
+    return ( (Fnad(t,beta) + a(beta))*areas[3]*q_sun()*alphas[3]    # is Azen a typo? probably
             + q_IR(beta)*areas[3]
             - sigma*epss[3]*areas[3]*Ts[3]**4
             + k*areas[1]*(Ts[1]-Ts[3])
@@ -159,8 +161,7 @@ def Q(Ts,t,beta):
             + Qvpos(Ts,t,beta)
             + Qnad(Ts,t,beta)
             + Qn(Ts,t,beta)
-            + Qs(Ts,t,beta) 
-            + Qgen*s(t,beta))
+            + Qs(Ts,t,beta) )
 
 
 # MAIN -----
@@ -169,7 +170,7 @@ def Q(Ts,t,beta):
 delt = 10    # [s]
 
 #choose numbger of orbit cycles
-n = 2
+n = 20
 
 # datapoints for plot
 betas = [0]
@@ -177,16 +178,16 @@ ts = [0]
 Ts = [6*[T]]
 
 #step
-for beta in range(0,90,5):
+for beta in range(0,15,5):
     t = 0
     while t < n*tau:
         temp = Ts[-1].copy()
-        temp[0] += Qzen(temp, t, beta)*delt/(cp*m)   # m as fraction with area weight     
-        temp[1] += Qvneg(temp, t, beta)*delt/(cp*m)
-        temp[2] += Qvpos(temp, t, beta)*delt/(cp*m)
-        temp[3] += Qnad(temp, t, beta)*delt/(cp*m)
-        temp[4] += Qn(temp, t, beta)*delt/(cp*m)
-        temp[5] += Qs(temp, t, beta)*delt/(cp*m)
+        temp[0] += Qzen(temp, t, beta)*delt/(cp*masses[0])    
+        temp[1] += Qvneg(temp, t, beta)*delt/(cp*masses[1])
+        temp[2] += Qvpos(temp, t, beta)*delt/(cp*masses[2])
+        temp[3] += Qnad(temp, t, beta)*delt/(cp*masses[3])
+        temp[4] += Qn(temp, t, beta)*delt/(cp*masses[4])
+        temp[5] += Qs(temp, t, beta)*delt/(cp*masses[5])
         Ts.append(temp)
         ts.append(t)
         t += delt
