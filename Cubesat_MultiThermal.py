@@ -2,7 +2,6 @@
 # CubeSat 6 node thermal model
 #
 # Author: Nicolas Beaudoin
-# Course: MCG43221
 #
 # Reference: https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/Preliminary_Thermal_Analysis_of_Small_Satellites.pdf
 #---------------------
@@ -62,7 +61,6 @@ def frac_E(beta):
 
 # eclipsed factor (basically bool)
 def s(t, beta):
-
     if ( tau/2 * (1-frac_E(beta)) < t%tau < tau/2 * (1+frac_E(beta)) ): 
         return 0
     else:
@@ -113,7 +111,7 @@ def Qzen(Ts, t, beta):
          + k*areas[2]*(Ts[2]-Ts[0])
          + k*areas[4]*(Ts[4]-Ts[0])
          + k*areas[5]*(Ts[5]-Ts[0]) 
-         + Qgen*s(t,beta) )             # include qgen in senith face
+         + Qgen*s(t,beta) )             # include qgen in zenith face
     
 def Qvneg(Ts, t, beta):
     return ( Fvneg(t, beta)*areas[1]*q_sun()*alphas[1] 
@@ -132,7 +130,7 @@ def Qvpos(Ts, t, beta):
          + k*areas[5]*(Ts[5]-Ts[2]) )
 
 def Qnad(Ts, t, beta):
-    return ( (Fnad(t,beta) + a(beta))*areas[3]*q_sun()*alphas[3]    # is Azen a typo? probably
+    return ( (Fnad(t,beta) + a(beta))*areas[3]*q_sun()*alphas[3]    # Azen typo in reference
             + q_IR(beta)*areas[3]
             - sigma*epss[3]*areas[3]*Ts[3]**4
             + k*areas[1]*(Ts[1]-Ts[3])
@@ -153,7 +151,7 @@ def Qs(Ts, t, beta):
          + k*areas[0]*(Ts[0]-Ts[4])
          + k*areas[1]*(Ts[1]-Ts[4])
          + k*areas[2]*(Ts[2]-Ts[4])
-         + k*areas[3]*(Ts[3]-Ts[4]) )     # another Tzen typo?
+         + k*areas[3]*(Ts[3]-Ts[4]) )     # Tzen typo in reference 
 
 def Q(Ts,t,beta):
     return ( Qzen(Ts,t,beta) 
@@ -164,12 +162,12 @@ def Q(Ts,t,beta):
             + Qs(Ts,t,beta) )
 
 
-# MAIN -----
+# ------- MAIN -------
 
-#choose time step
+# choose time step
 delt = 10    # [s]
 
-#choose numbger of orbit cycles
+# choose number of orbit cycles
 n = 20
 
 # datapoints for plot
@@ -177,7 +175,7 @@ betas = [0]
 ts = [0]
 Ts = [6*[T]]
 
-#step
+# step
 for beta in range(0,15,5):
     t = 0
     while t < n*tau:
@@ -200,7 +198,9 @@ Tavg = []
 for i in range(len(Ts)):
     Tavg.append(sum(Ts[i])/len(Ts[i]))
 
-#results
+
+# Output Results -------
+
 print("Tmax: "+ str(max(Tavg)))
 print("Tmin: " + str(min(Tavg)))
 print("final T: " + str(T))
